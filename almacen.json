@@ -1,0 +1,139 @@
+{
+  "asignatura": [
+    {
+      "id": "1",
+      "nombre": "religion",
+      "seccion": "7d",
+      "dia": "martes 8am"
+    },
+    {
+      "id": "2",
+      "nombre": "ingles",
+      "seccion": "4d",
+      "dia": "viernes 8am"
+    },
+    {
+      "id": "5",
+      "nombre": "programacion",
+      "seccion": "6d",
+      "dia": "jueves 8am"
+    },
+    {
+      "id": "4",
+      "nombre": "ciencias",
+      "seccion": "5d",
+      "dia": "miercoles 8am"
+    }
+  ],
+  "usuarios": [
+    {
+      "id": "1",
+      "username": "Sebastian2",
+      "email": "seba@gmail.com",
+      "password": "seba12345",
+      "isactive": true
+    },
+    {
+      "id": "2",
+      "username": "JuanCarlos",
+      "password": "juan12345",
+      "email": "juan@gmail.com",
+      "isactive": true
+    },
+    {
+      "id": "a0b7",
+      "username": "Martin",
+      "email": "martin@gmail.com",
+      "password": "martin12345",
+      "isactive": true
+    },
+    {
+      "id": "6231",
+      "username": "Joaquin",
+      "email": "joaquin@gmail.com",
+      "password": "joaquin12345",
+      "isactive": true
+    },
+    {
+      "id": "04dd",
+      "username": "Martin salas",
+      "email": "martincito@gmail.com",
+      "password": "martin1234",
+      "isactive": true
+    },
+    {
+      "id": "5c0f",
+      "username": "MArcosss",
+      "email": "marcos@gmail.com",
+      "password": "marcos12345",
+      "isactive": true
+    },
+    {
+      "id": "70dd",
+      "username": "mauricio",
+      "email": "mauri@gmail.com",
+      "password": "mauri12345",
+      "isactive": true
+    },
+    {
+      "id": "7060",
+      "username": "asfasgfasgs",
+      "email": "defsfsag@gmail.com",
+      "password": "seba12345",
+      "isactive": true
+    },
+    {
+      "id": "46e4",
+      "username": "marquitos",
+      "email": "marquito@gmail.com",
+      "password": "marquito12345",
+      "isactive": true
+    },
+    {
+      "id": "a6d0",
+      "username": "martin",
+      "email": "martin1@duocuc.cl",
+      "password": "martin12345",
+      "isactive": true
+    },
+    {
+      "id": "7677",
+      "username": "jose12",
+      "email": "jose@gmail.com",
+      "password": "jose1234",
+      "isactive": true
+    }
+  ],
+  "justificativos": [
+    {
+      "id": "1",
+      "asignatura": "religion",
+      "descripcion": "problemaspersonales",
+      "dia": "2024-10-23",
+      "profesor": "juanCarlos"
+    },
+    {
+      "id": "6caa",
+      "asignatura": "leanguaje",
+      "descripcion": "problemas personales",
+      "fecha": "2024-10-24",
+      "profesor": "sebastian menares"
+    },
+    {
+      "id": "5a88",
+      "asignatura": "religion ",
+      "descripcion": "problemas personales",
+      "fecha": "2024-10-22",
+      "profesor": "martin"
+    }
+  ],
+  "qr": [
+    {
+      "id": "4b0d",
+      "nomAsignatura": "ciencias",
+      "seccion": "5d",
+      "fecha": "22-11-2024 16:46",
+      "nombreUsuario": "Sebastian1"
+    }
+  ]
+}
