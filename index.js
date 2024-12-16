@@ -39,7 +39,7 @@ server.post("/password-recovery", (req, res) => {
   // Configurar el correo
   const mailOptions = {
     to: email,
-    from: "tuemail@tudominio.com", // Correo registrado en SendGrid
+    from: "sebacabab@gmail.com", // Correo registrado en SendGrid
     subject: "Recuperación de contraseña",
     text: `Hola, \n\nHaz clic en el siguiente enlace para recuperar tu contraseña:\n${recoveryLink}\n\nSi no solicitaste esto, ignora este mensaje.`,
     html: `
