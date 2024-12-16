@@ -50,7 +50,7 @@ server.post("/password-recovery", async (req, res) => {
 
   try {
     await resend.emails.send({
-      from: "se.caba@duocuc.cl", // Debe ser un remitente verificado en Resend
+      from: "onboarding@resend.dev", // Debe ser un remitente verificado en Resend
       to: email,
       subject: "Recuperación de contraseña",
       html: `
