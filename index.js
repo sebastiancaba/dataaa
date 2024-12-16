@@ -1,80 +1,57 @@
-require("dotenv").config({ path: "./.env" });
-console.log("Resend API Key:", process.env.RESEND_API_KEY);
-const { Resend } = require("resend");
+require("dotenv").config();
+const express = require("express");
+const { MailerSend, EmailParams, Recipient } = require("@mailersend/sdk");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const app = express();
+app.use(express.json());
 
-const jsonServer = require("json-server");
-const server = jsonServer.create();
-const cors = require("cors");
-const router = jsonServer.router("almacen.json");
-const middlewares = jsonServer.defaults();
-const port = process.env.PORT || 10000;
-
-
-
-// Configurar CORS para permitir solicitudes de tu frontend
-server.use(cors({
-  origin: "http://localhost:8100", // Permitir solo este origen
-  methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
-  allowedHeaders: ["Content-Type", "Authorization"] // Encabezados permitidos
-}));
-
-server.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Permitir cualquier origen temporalmente
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
+// Configura Mailersend con la API Key desde .env
+const mailerSend = new MailerSend({
+  apiKey: process.env.MAILERSEND_API_KEY, // Variable segura
 });
 
+// Endpoint de recuperación de contraseña
+app.post("/password-recovery", async (req, res) => {
+  const { email } = req.body; // Recibe el correo del usuario
 
-server.use(middlewares);
-server.use(jsonServer.bodyParser);
-
-server.post("/password-recovery", async (req, res) => {
-  const { email } = req.body;
-
+  // Validar que el email esté presente
   if (!email) {
     return res.status(400).json({ message: "El correo electrónico es requerido." });
   }
 
-  // Buscar el usuario en la base de datos
-  const users = router.db.get("usuarios").value();
-  const user = users.find((u) => u.email === email);
-
-  if (!user) {
-    return res.status(404).json({ message: "El correo electrónico no está registrado." });
-  }
-
-  const recoveryLink = `https://tusitio.com/reset-password?email=${email}`;
+  // Generar un enlace de recuperación (dinámico)
+  const recoveryLink = `https://tusitio.com/reset-password?email=${encodeURIComponent(email)}`;
 
   try {
-    await resend.emails.send({
-      from: "onboarding@resend.dev", // Debe ser un remitente verificado en Resend
-      to: email,
-      subject: "Recuperación de contraseña",
-      html: `
+    // Configuración del correo
+    const emailParams = new EmailParams()
+      .setFrom("no-reply@trial-3yxj6ljr2904do2r.mlsender.net") // Usa el remitente verificado
+      .setFromName("Soporte") // Nombre visible del remitente
+      .setRecipients([new Recipient(email, "Usuario")]) // Correo dinámico
+      .setSubject("Recuperación de contraseña")
+      .setHtml(`
         <h3>Recuperación de Contraseña</h3>
         <p>Hola,</p>
-        <p>Haz clic en el siguiente enlace para recuperar tu contraseña:</p>
-        <a href="${recoveryLink}">${recoveryLink}</a>
+        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <a href="${recoveryLink}">Restablecer contraseña</a>
         <p>Si no solicitaste esto, ignora este mensaje.</p>
-      `,
-    });
+      `);
 
-    console.log("Correo enviado con éxito a:", email);
+    // Envía el correo
+    await mailerSend.email.send(emailParams);
+    console.log(`Correo enviado a: ${email}`);
     res.status(200).json({
-      message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
-      link: recoveryLink,
+      message: "Correo de recuperación enviado con éxito.",
+      link: recoveryLink, // Opcional: devuelve el enlace para verificar en pruebas
     });
   } catch (error) {
     console.error("Error al enviar el correo:", error);
-    res.status(500).json({ message: "Error al enviar el correo electrónico." });
+    res.status(500).json({ message: "Error al enviar el correo de recuperación." });
   }
 });
 
-server.use(router);
-
-server.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+// Inicia el servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
