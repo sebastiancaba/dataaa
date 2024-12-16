@@ -1,15 +1,15 @@
-const nodemailer = require("nodemailer");
+const jsonServer = require("json-server");
+const server = jsonServer.create(); // Declara el servidor aquí
+const cors = require("cors");
+const router = jsonServer.router("almacen.json");
+const middlewares = jsonServer.defaults();
+const port = process.env.PORT || 10000; // Puerto del servidor
 
-// Configura el transporte (usa tu proveedor de correo SMTP)
-const transporter = nodemailer.createTransport({
-  service: "gmail", // Ejemplo: Gmail SMTP
-  auth: {
-    user: "tuemail@gmail.com", // Coloca tu correo
-    pass: "tucontraseña", // Coloca tu contraseña o App Password
-  },
-});
+server.use(cors());
+server.use(middlewares);
+server.use(jsonServer.bodyParser); // Permite procesar JSON en el body
 
-// Ruta para enviar el enlace de recuperación
+// Ruta personalizada: /password-recovery
 server.post("/password-recovery", (req, res) => {
   const { email } = req.body;
 
@@ -28,21 +28,17 @@ server.post("/password-recovery", (req, res) => {
   // Simular enlace de recuperación
   const recoveryLink = `https://tusitio.com/reset-password?email=${email}`;
 
-  // Configurar el correo
-  const mailOptions = {
-    from: "tuemail@gmail.com", // Correo remitente
-    to: email, // Correo destinatario
-    subject: "Recuperación de Contraseña",
-    text: `Hola, \n\nHaz clic en el siguiente enlace para recuperar tu contraseña:\n\n${recoveryLink}\n\nSi no solicitaste este correo, ignóralo.`,
-  };
-
-  // Enviar el correo
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Error al enviar el correo:", error);
-      return res.status(500).json({ message: "Error al enviar el correo electrónico." });
-    }
-    console.log("Correo enviado:", info.response);
-    res.status(200).json({ message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado." });
+  console.log(`Enlace de recuperación enviado a: ${email}`);
+  return res.status(200).json({
+    message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
+    link: recoveryLink, // Simulación del enlace de recuperación
   });
+});
+
+// Usar el resto de las rutas de json-server
+server.use(router);
+
+// Iniciar el servidor
+server.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
 });
