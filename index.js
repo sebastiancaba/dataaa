@@ -1,5 +1,6 @@
-require("dotenv").config(); // Importa y configura dotenv al inicio del archivo
-console.log("SendGrid API Key:", process.env.SENDGRID_API_KEY);
+// Importa y configura dotenv al inicio del archivo
+require("dotenv").config();
+console.log("Gmail Password Recovery API Key:", process.env.GMAIL_PASSWORD);
 
 const jsonServer = require("json-server");
 const server = jsonServer.create();
@@ -8,17 +9,23 @@ const router = jsonServer.router("almacen.json");
 const middlewares = jsonServer.defaults();
 const port = process.env.PORT || 10000;
 
-// Importa SendGrid
-const sgMail = require("@sendgrid/mail");
+// Importa nodemailer
+const nodemailer = require("nodemailer");
 
-// Configura SendGrid con la API Key desde las variables de entorno
-sgMail.setApiKey(process.env.SENDGRID_API_KEY); // Usa la clave desde el archivo .env
+// Configura el transporte de nodemailer usando Gmail
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER, // Correo electrónico de Gmail
+    pass: process.env.GMAIL_PASSWORD // Contraseña o app password de Gmail
+  }
+});
 
 server.use(cors());
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
 
-// Ruta para recuperar contraseña
+// Ruta para recuperación de contraseña
 server.post("/password-recovery", (req, res) => {
   const { email } = req.body;
 
@@ -39,8 +46,8 @@ server.post("/password-recovery", (req, res) => {
 
   // Configurar el correo
   const mailOptions = {
-    to: email,
-    from: "sebacabab@gmail.com", // Correo registrado en SendGrid
+    from: process.env.GMAIL_USER, // Correo electrónico de origen
+    to: email, // Correo del destinatario
     subject: "Recuperación de contraseña",
     text: `Hola, \n\nHaz clic en el siguiente enlace para recuperar tu contraseña:\n${recoveryLink}\n\nSi no solicitaste esto, ignora este mensaje.`,
     html: `
@@ -52,20 +59,18 @@ server.post("/password-recovery", (req, res) => {
     `
   };
 
-  // Enviar el correo usando SendGrid
-  sgMail
-    .send(mailOptions)
-    .then(() => {
-      console.log("Correo enviado con éxito a:", email);
-      res.status(200).json({
-        message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
-        link: recoveryLink
-      });
-    })
-    .catch((error) => {
+  // Enviar el correo usando nodemailer
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
       console.error("Error al enviar el correo:", error);
-      res.status(500).json({ message: "Error al enviar el correo electrónico." });
+      return res.status(500).json({ message: "Error al enviar el correo electrónico." });
+    }
+    console.log("Correo enviado con éxito a:", email);
+    res.status(200).json({
+      message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
+      link: recoveryLink
     });
+  });
 });
 
 // Rutas existentes
