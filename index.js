@@ -11,7 +11,23 @@ const router = jsonServer.router("almacen.json");
 const middlewares = jsonServer.defaults();
 const port = process.env.PORT || 10000;
 
-server.use(cors());
+const cors = require("cors");
+
+// Configurar CORS para permitir solicitudes de tu frontend
+server.use(cors({
+  origin: "http://localhost:8100", // Permitir solo este origen
+  methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
+  allowedHeaders: ["Content-Type", "Authorization"] // Encabezados permitidos
+}));
+
+server.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Permitir cualquier origen temporalmente
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
+
+
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
 
