@@ -1,43 +1,48 @@
-const jsonServer = require("json-server");
-const server = jsonServer.create();
-const cors = require("cors");
-const router = jsonServer.router("almacen.json");
-const middlewares = jsonServer.defaults();
-const port = process.env.PORT || 10000; // Puerto del servidor
+const nodemailer = require("nodemailer");
 
-server.use(cors());
-server.use(middlewares);
-server.use(jsonServer.bodyParser); // Permite procesar JSON en el body
+// Configura el transporte (usa tu proveedor de correo SMTP)
+const transporter = nodemailer.createTransport({
+  service: "gmail", // Ejemplo: Gmail SMTP
+  auth: {
+    user: "tuemail@gmail.com", // Coloca tu correo
+    pass: "tucontraseña", // Coloca tu contraseña o App Password
+  },
+});
 
-// Ruta personalizada: /password-recovery
+// Ruta para enviar el enlace de recuperación
 server.post("/password-recovery", (req, res) => {
   const { email } = req.body;
 
-  // Validación del email
   if (!email) {
     return res.status(400).json({ message: "El correo electrónico es requerido." });
   }
 
-  // Buscar el usuario por email en la colección "usuarios"
-  const users = router.db.get("usuarios").value(); // Obtiene todos los usuarios
+  // Buscar el usuario en la base de datos
+  const users = router.db.get("usuarios").value();
   const user = users.find((u) => u.email === email);
 
   if (!user) {
-    // El correo no está registrado
     return res.status(404).json({ message: "El correo electrónico no está registrado." });
   }
 
-  // Simulación de envío de enlace de recuperación
-  console.log(`Enlace de recuperación enviado a: ${email}`);
-  return res.status(200).json({
-    message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
+  // Simular enlace de recuperación
+  const recoveryLink = `https://tusitio.com/reset-password?email=${email}`;
+
+  // Configurar el correo
+  const mailOptions = {
+    from: "tuemail@gmail.com", // Correo remitente
+    to: email, // Correo destinatario
+    subject: "Recuperación de Contraseña",
+    text: `Hola, \n\nHaz clic en el siguiente enlace para recuperar tu contraseña:\n\n${recoveryLink}\n\nSi no solicitaste este correo, ignóralo.`,
+  };
+
+  // Enviar el correo
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error al enviar el correo:", error);
+      return res.status(500).json({ message: "Error al enviar el correo electrónico." });
+    }
+    console.log("Correo enviado:", info.response);
+    res.status(200).json({ message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado." });
   });
-});
-
-// Usar el resto de las rutas de json-server
-server.use(router);
-
-// Iniciar el servidor
-server.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
 });
