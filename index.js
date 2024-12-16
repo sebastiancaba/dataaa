@@ -1,8 +1,5 @@
-require("dotenv").config({ path: "./.env" });
-console.log("Resend API Key:", process.env.RESEND_API_KEY);
-const { Resend } = require("resend");
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+require("dotenv").config(); // Importa y configura dotenv al inicio del archivo
+console.log("SendGrid API Key:", process.env.SENDGRID_API_KEY);
 
 const jsonServer = require("json-server");
 const server = jsonServer.create();
@@ -11,27 +8,18 @@ const router = jsonServer.router("almacen.json");
 const middlewares = jsonServer.defaults();
 const port = process.env.PORT || 10000;
 
+// Importa SendGrid
+const sgMail = require("@sendgrid/mail");
 
+// Configura SendGrid con la API Key desde las variables de entorno
+sgMail.setApiKey(process.env.SENDGRID_API_KEY); // Usa la clave desde el archivo .env
 
-// Configurar CORS para permitir solicitudes de tu frontend
-server.use(cors({
-  origin: "http://localhost:8100", // Permitir solo este origen
-  methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
-  allowedHeaders: ["Content-Type", "Authorization"] // Encabezados permitidos
-}));
-
-server.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Permitir cualquier origen temporalmente
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
-
-
+server.use(cors());
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
 
-server.post("/password-recovery", async (req, res) => {
+// Ruta para recuperar contraseña
+server.post("/password-recovery", (req, res) => {
   const { email } = req.body;
 
   if (!email) {
@@ -46,35 +34,44 @@ server.post("/password-recovery", async (req, res) => {
     return res.status(404).json({ message: "El correo electrónico no está registrado." });
   }
 
+  // Simular un enlace de recuperación
   const recoveryLink = `https://tusitio.com/reset-password?email=${email}`;
 
-  try {
-    await resend.emails.send({
-      from: "onboarding@resend.dev", // Debe ser un remitente verificado en Resend
-      to: email,
-      subject: "Recuperación de contraseña",
-      html: `
-        <h3>Recuperación de Contraseña</h3>
-        <p>Hola,</p>
-        <p>Haz clic en el siguiente enlace para recuperar tu contraseña:</p>
-        <a href="${recoveryLink}">${recoveryLink}</a>
-        <p>Si no solicitaste esto, ignora este mensaje.</p>
-      `,
-    });
+  // Configurar el correo
+  const mailOptions = {
+    to: email,
+    from: "sebacabab@gmail.com", // Correo registrado en SendGrid
+    subject: "Recuperación de contraseña",
+    text: `Hola, \n\nHaz clic en el siguiente enlace para recuperar tu contraseña:\n${recoveryLink}\n\nSi no solicitaste esto, ignora este mensaje.`,
+    html: `
+      <h3>Recuperación de Contraseña</h3>
+      <p>Hola,</p>
+      <p>Haz clic en el siguiente enlace para recuperar tu contraseña:</p>
+      <a href="${recoveryLink}">${recoveryLink}</a>
+      <p>Si no solicitaste esto, ignora este mensaje.</p>
+    `
+  };
 
-    console.log("Correo enviado con éxito a:", email);
-    res.status(200).json({
-      message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
-      link: recoveryLink,
+  // Enviar el correo usando SendGrid
+  sgMail
+    .send(mailOptions)
+    .then(() => {
+      console.log("Correo enviado con éxito a:", email);
+      res.status(200).json({
+        message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
+        link: recoveryLink
+      });
+    })
+    .catch((error) => {
+      console.error("Error al enviar el correo:", error);
+      res.status(500).json({ message: "Error al enviar el correo electrónico." });
     });
-  } catch (error) {
-    console.error("Error al enviar el correo:", error);
-    res.status(500).json({ message: "Error al enviar el correo electrónico." });
-  }
 });
 
+// Rutas existentes
 server.use(router);
 
+// Iniciar el servidor
 server.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });
