@@ -4,20 +4,16 @@ const cors = require("cors");
 const router = jsonServer.router("almacen.json");
 const middlewares = jsonServer.defaults();
 const port = process.env.PORT || 10000;
-const nodemailer = require("nodemailer");
+
+// Importa SendGrid
+const sgMail = require("@sendgrid/mail");
+
+// Configura SendGrid con tu API Key
+sgMail.setApiKey("REDACTED"); // Reemplaza con tu API Key
 
 server.use(cors());
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
-
-// Configura Nodemailer con Gmail
-const transporter = nodemailer.createTransport({
-  service: "gmail", // Usa "gmail" para enviar con Gmail
-  auth: {
-    user: "tuemail@gmail.com", // Coloca tu correo
-    pass: "tupassword" // Coloca tu contraseña o App Password de Gmail
-  }
-});
 
 // Ruta para recuperar contraseña
 server.post("/password-recovery", (req, res) => {
@@ -40,24 +36,33 @@ server.post("/password-recovery", (req, res) => {
 
   // Configurar el correo
   const mailOptions = {
-    from: "tuemail@gmail.com",
     to: email,
+    from: "tuemail@tudominio.com", // Correo registrado en SendGrid
     subject: "Recuperación de contraseña",
-    text: `Hola, \n\nHaz clic en el siguiente enlace para recuperar tu contraseña:\n${recoveryLink}\n\nSi no solicitaste esto, ignora este mensaje.`
+    text: `Hola, \n\nHaz clic en el siguiente enlace para recuperar tu contraseña:\n${recoveryLink}\n\nSi no solicitaste esto, ignora este mensaje.`,
+    html: `
+      <h3>Recuperación de Contraseña</h3>
+      <p>Hola,</p>
+      <p>Haz clic en el siguiente enlace para recuperar tu contraseña:</p>
+      <a href="${recoveryLink}">${recoveryLink}</a>
+      <p>Si no solicitaste esto, ignora este mensaje.</p>
+    `
   };
 
-  // Enviar el correo
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
+  // Enviar el correo usando SendGrid
+  sgMail
+    .send(mailOptions)
+    .then(() => {
+      console.log("Correo enviado con éxito a:", email);
+      res.status(200).json({
+        message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
+        link: recoveryLink
+      });
+    })
+    .catch((error) => {
       console.error("Error al enviar el correo:", error);
-      return res.status(500).json({ message: "Error al enviar el correo electrónico." });
-    }
-    console.log("Correo enviado:", info.response);
-    res.status(200).json({
-      message: "Se ha enviado un enlace de recuperación al correo electrónico proporcionado.",
-      link: recoveryLink
+      res.status(500).json({ message: "Error al enviar el correo electrónico." });
     });
-  });
 });
 
 // Rutas existentes
