@@ -1,6 +1,5 @@
 // Importa y configura dotenv al inicio del archivo
 require("dotenv").config();
-
 console.log("GMAIL_USER:", process.env.GMAIL_USER);
 console.log("GMAIL_PASSWORD:", process.env.GMAIL_PASSWORD);
 
@@ -14,17 +13,18 @@ const port = process.env.PORT || 10000;
 // Importa nodemailer
 const nodemailer = require("nodemailer");
 
-// Configura el transporte de nodemailer usando Gmail
+// Configura el transporte SMTP de nodemailer con logs y depuración habilitada
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465, // 465 para SSL, 587 si no usas secure
+  host: "smtp.gmail.com", // Servidor SMTP de Gmail
+  port: 465, // Puerto seguro SSL
   secure: true, // true para SSL
   auth: {
     user: process.env.GMAIL_USER, // Correo electrónico
-    pass: process.env.GMAIL_PASSWORD // Contraseña de aplicación
-  }
+    pass: process.env.GMAIL_PASSWORD // Contraseña o App Password de Gmail
+  },
+  logger: true, // Habilita logs detallados
+  debug: true   // Muestra depuración completa de SMTP
 });
-
 
 server.use(cors());
 server.use(middlewares);
@@ -67,8 +67,12 @@ server.post("/password-recovery", (req, res) => {
   // Enviar el correo usando nodemailer
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error("Error al enviar el correo:", error);
-      return res.status(500).json({ message: "Error al enviar el correo electrónico." });
+      console.error("Error al enviar el correo:", error.message);
+      console.error("Detalles del error SMTP:", error);
+      return res.status(500).json({
+        message: "Error al enviar el correo electrónico.",
+        error: error.message
+      });
     }
     console.log("Correo enviado con éxito a:", email);
     res.status(200).json({
