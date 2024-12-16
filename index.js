@@ -1,6 +1,8 @@
 // Importa y configura dotenv al inicio del archivo
 require("dotenv").config();
-console.log("Gmail Password Recovery API Key:", process.env.GMAIL_PASSWORD);
+
+console.log("GMAIL_USER:", process.env.GMAIL_USER);
+console.log("GMAIL_PASSWORD:", process.env.GMAIL_PASSWORD);
 
 const jsonServer = require("json-server");
 const server = jsonServer.create();
@@ -14,12 +16,15 @@ const nodemailer = require("nodemailer");
 
 // Configura el transporte de nodemailer usando Gmail
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465, // 465 para SSL, 587 si no usas secure
+  secure: true, // true para SSL
   auth: {
-    user: process.env.GMAIL_USER, // Correo electrónico de Gmail
-    pass: process.env.GMAIL_PASSWORD // Contraseña o app password de Gmail
+    user: process.env.GMAIL_USER, // Correo electrónico
+    pass: process.env.GMAIL_PASSWORD // Contraseña de aplicación
   }
 });
+
 
 server.use(cors());
 server.use(middlewares);
