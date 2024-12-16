@@ -1,3 +1,5 @@
+require("dotenv").config(); // Importa y configura dotenv al inicio del archivo
+
 const jsonServer = require("json-server");
 const server = jsonServer.create();
 const cors = require("cors");
@@ -8,8 +10,8 @@ const port = process.env.PORT || 10000;
 // Importa SendGrid
 const sgMail = require("@sendgrid/mail");
 
-// Configura SendGrid con tu API Key
-sgMail.setApiKey("REDACTED"); // Reemplaza con tu API Key
+// Configura SendGrid con la API Key desde las variables de entorno
+sgMail.setApiKey(process.env.SENDGRID_API_KEY); // Usa la clave desde el archivo .env
 
 server.use(cors());
 server.use(middlewares);
